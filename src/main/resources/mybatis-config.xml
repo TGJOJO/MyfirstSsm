@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+    <properties resource="druid.properties"/>
+
+    <!-- 设置MyBatis的全局变量 -->
+    <settings>
+        <!-- 将_自动设置为驼峰 -->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <!-- 开启延迟加载 -->
+        <setting name="lazyLoadingEnabled" value="true"/>
+    </settings>
+
+    <typeAliases>
+        <package name="com.TG.ssm.pojo"/>
+    </typeAliases>
+
+    <!-- 如果在spring中配置了和mybatis整合(SqlSessionFactory)这里就不用配了-->
+<!--    <environments default="development">-->
+<!--        <environment id="development">-->
+<!--            <transactionManager type="JDBC"/>-->
+<!--            <dataSource type="POOLED">-->
+<!--                <property name="driver" value="${druid.driver}"/>-->
+<!--                <property name="url" value="${druid.url}"/>-->
+<!--                <property name="username" value="${druid.username}"/>-->
+<!--                <property name="password" value="${druid.password}"/>-->
+<!--            </dataSource>-->
+<!--        </environment>-->
+<!--    </environments>-->
+
+<!--    <mappers>-->
+<!--        <package name="com.TG.ssm.mapper"/>-->
+<!--    </mappers>-->
+
+    <plugins>
+        <!--设置分页插件-->
+        <plugin interceptor="com.github.pagehelper.PageInterceptor"/>
+    </plugins>
+
+</configuration>

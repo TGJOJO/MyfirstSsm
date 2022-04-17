@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+<!--    <meta http-equiv="X-UA-Compatible" content="IE=edge">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1">-->
+    <title>员工列表</title>
+
+    <link rel="stylesheet" th:href="@{/static/bootstrap/css/bootstrap.css}">
+    <link rel="stylesheet" th:href="@{/static/bootstrap/css/bootstrap-theme.css}">
+
+    <script type="text/javascript" th:src="@{/static/js/jquery-2.2.4.js}"></script>
+    <script type="text/javascript" th:src="@{/static/bootstrap/js/bootstrap.js}"></script>
+    <script type="text/javascript" th:src="@{/static/bootstrap/js/npm.js}"></script>
+    <script type="text/javascript" th:src="@{/static/js/axios.min.js}"></script>
+    <script type="text/javascript" th:src="@{/static/js/vue.js}"></script>
+    <script type="text/javascript" th:src="@{/static/js/list.js}"></script>
+</head>
+<body>
+<div class="container" id="div_list">
+    <!-- 标题 -->
+    <div class="row">
+        <div class="col-lg-12">
+            <h1>SSM-CRUD</h1>
+        </div>
+    </div>
+    <!-- 按钮 -->
+    <div class="row">
+        <div class="col-md-2 col-md-offset-10">
+            <button type="button" class="btn btn-success" @click="openAddModal()">新增</button>
+            <button type="button" class="btn btn-warning" @click="delEmps()">删除</button>
+        </div>
+    </div>
+    <!-- 显示表格数据 -->
+    <div class="row">
+        <div class="col-lg-12">
+            <table class="table table-hover">
+                <tr><p class="text-center" style="font-size: larger"><strong>Employee Information List</strong></p></tr>
+                <tr>
+                    <th><input type="checkbox" id="check_all" @click="checkAll()"/></th>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Sex</th>
+                    <th>Email</th>
+                    <th>DeptName</th>
+                    <th>Operation</th>
+                </tr>
+                <tr v-for="emp in pageInfo.list">
+                    <td><input type="checkbox" class="check_item" @click="checkItem(emp.eid)"/></td>
+                    <td>{{emp.empName}}</td>
+                    <td>{{emp.age}}</td>
+                    <td>{{emp.sex}}</td>
+                    <td>{{emp.email}}</td>
+                    <td>{{emp.department.deptName}}</td>
+                    <td>
+                        <button id="but_edit_emp" type="button" class="btn btn-info btn-sm" @click="openEditModal(emp)">
+                            <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                            编辑
+                        </button>
+                        <button type="button" class="btn btn-warning btn-sm" @click="delEmp(emp.eid)">
+                            <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                            删除
+                        </button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <!-- 显示分页信息 -->
+    <div class="row">
+        <!-- 显示文字信息 -->
+        <div class="col-md-6">
+            <span>当前第<span>{{pageInfo.pageNum}}</span>页，总共<span>{{pageInfo.pages}}</span>页，共<span>{{pageInfo.total}}</span>条记录</span>
+        </div>
+        <!-- 导航栏 -->
+        <div class="col-md-6">
+            <nav aria-label="Page navigation">
+                <ul class="pagination" >
+                    <li><a href="#" @click="gotoPage(1)">首页</a></li>
+                    <li v-if="pageInfo.hasPreviousPage">
+                        <a @click="gotoPage(pageInfo.prePage)" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <ul class="pagination" v-for="page in pageInfo.navigatepageNums">
+                    <li v-if="pageInfo.pageNum == page" class="active"><a @click="gotoPage(page)" href="#">{{page}}</a></li>
+                    <li v-else><a @click="gotoPage(page)" href="#">{{page}}</a></li>
+                </ul>
+
+                <ul class="pagination" >
+                    <li v-if="pageInfo.hasNextPage">
+                        <a @click="gotoPage(pageInfo.pageNum + 1)" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li><a @click="gotoPage(pageInfo.pages)" href="#">末页</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+</div>
+
+<div class="modal fade" id="addEmpModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">添加员工</h4>
+            </div>
+            <div class="modal-body">
+                <form id="form_addEmp">
+                    <div class="form-group" id="div_name">
+                        <label for="inputName">姓名</label>
+                        <input type="text" class="form-control" placeholder="Name" v-model="empName" id="inputName" @blur="checkEmpName()">
+                        <span id="nameSpan" style="visibility: hidden"><p id="p_faultMsg" class="text-danger"></p></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exampleInputEmail1">年龄</label>
+                        <input type="text" class="form-control" placeholder="Age" v-model="age">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exampleInputEmail1">性别</label>
+                        <div class="radio">
+                            <label>
+                                <input type="radio" v-model="sex" id="optionsRadios1" value="男" checked="checked"> 男
+                            </label>
+                            <label>
+                                <input type="radio" v-model="sex" id="optionsRadios2" value="女"> 女
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="div_email">
+                        <label for="exampleInputEmail1">邮箱</label>
+                        <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Email" v-model="email" @blur="checkEmail()">
+                        <span id="emailSpan" style="visibility: hidden"><p class="text-danger">请输入正确的邮箱格式</p></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exampleInputEmail1">部门</label>
+                        <!--                        <input type="text" class="form-control" placeholder="Department" v-model="department" onblur="checkDeptName(this.value)">-->
+                        <select class="form-control" v-model="did">
+                            <option v-for="dept in deptList" :value="dept.did">{{dept.deptName}}</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button id="but_addEmp" type="button" class="btn btn-primary"  @click="addEmp()">添加</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="updateEmpModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel2">编辑员工</h4>
+            </div>
+            <div class="modal-body">
+                <form id="form_updateEmp">
+                    <div class="form-group" id="div_name_update">
+                        <label for="exampleInputEmail1">姓名</label>
+                        <p><span id="span_emp_edit_name">{{empName}}</span></p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exampleInputEmail1">年龄</label>
+                        <input id="input_emp_edit_age" type="text" class="form-control" placeholder="Age" v-model="age">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exampleInputEmail1">性别</label>
+                        <div class="radio" >
+                            <label>
+                                <input id="input_emp_edit_sex1" name="gender" type="radio" v-model="sex" value="男" checked="checked"> 男
+                            </label>
+                            <label>
+                                <input id="input_emp_edit_sex2" name="gender" type="radio" v-model="sex" value="女"> 女
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="div_email_update">
+                        <label for="exampleInputEmail1">邮箱</label>
+                        <input id="input_emp_edit_email" type="email" class="form-control" placeholder="Email" v-model="email" @blur="checkEmail()">
+                        <span id="emailSpan_update" style="visibility: hidden"><p class="text-danger">请输入正确的邮箱格式</p></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exampleInputEmail1">部门</label>
+                        <select id="select_emp_edit_dept" class="form-control" v-model="did">
+                            <option v-for="dept in deptList" :value="dept.did">{{dept.deptName}}</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button id="but_updateEmp" type="button" class="btn btn-primary" @click="updateEmp()">修改</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
