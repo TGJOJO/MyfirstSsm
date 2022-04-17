@@ -115,6 +115,7 @@ public class testMVC {
         System.out.println("执行完成");
         System.out.println("first commit后修改1");
         System.out.println("second commit后修改2");
+        System.out.println("hot-fix commit");
     }
 
 }
