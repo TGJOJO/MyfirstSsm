@@ -120,7 +120,7 @@ public class testMVC {
         System.out.println("test hot-fix");
         System.out.println("push test");
         System.out.println("pull test");
-        System.out.println("github test")
+        System.out.println("github test");
     }
 
 }
